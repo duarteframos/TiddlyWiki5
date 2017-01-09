@@ -4,8 +4,44 @@ title: $:/core/ui/EditorToolbar/picture-dropdown
 [img[$(imageTitle)$]]
 \end
 
+\define insert-external-image()
+<$set name="imageTitle" value={{$(pictureTiddler)$}}>
+<$button class="tc-btn-invisible" style="width: auto; display: inline-block; background-colour: inherit;">
+<$action-sendmessage $message="tm-edit-text-operation" $param="replace-selection" text=<<insert-external-image>>
+/>
+{{$:/core/images/chevron-right}}
+<$action-deletetiddler
+	$tiddler=<<dropdown-state>>
+/>
+
+<$action-deletetiddler
+	$tiddler=<<pictureTiddler>>
+/>
+</$button>
+</$set>
+\end
+
+\define body(config-title)
+''<<lingo Hint>>''
+
+<$vars pictureTiddler="""$config-title$/search""" imageTitle={{$(pictureTiddler)$}} >
+
+<$edit-text tiddler=<<pictureTiddler>> type="search" tag="input" focus="true" placeholder={{$:/language/Buttons/Picture/Hint}} default=""/>
+<$reveal tag="span" state=<<pictureTiddler>> type="nomatch" text="">
+<<external-image>>
+<$button class="tc-btn-invisible" style="width: auto; display: inline-block; background-colour: inherit;">
+<$action-setfield $tiddler=<<pictureTiddler>> text="" />
+{{$:/core/images/close-button}}
+</$button>
+</$reveal>
+
+</$vars>
+
+\end
+
 ''{{$:/language/Buttons/Picture/Hint}}''
 
+<$macrocall $name="body" config-title=<<qualify "$:/state/Picture/">>/>
 <$macrocall $name="image-picker" actions="""
 
 <$action-sendmessage
