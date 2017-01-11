@@ -1,57 +1,59 @@
-title: $:/core/ui/EditorToolbar/picture-dropdown
+\define preview-state() $(state)$/preview
 
 \define replacement-text()
 [img[$(imageTitle)$]]
 \end
 
-\define insert-external-image()
-<$set name="imageTitle" value={{$(pictureTiddler)$}}>
-<$button class="tc-btn-invisible" style="width: auto; display: inline-block; background-colour: inherit;">
-<$action-sendmessage $message="tm-edit-text-operation" $param="replace-selection" text=<<insert-external-image>>
-/>
-{{$:/core/images/chevron-right}}
-<$action-deletetiddler
-	$tiddler=<<dropdown-state>>
-/>
-
-<$action-deletetiddler
-	$tiddler=<<pictureTiddler>>
-/>
-</$button>
+\define insert-img-actions()
+<$set name="imageTitle" value=<<imageTitle>> emptyValue={{$(state)$}}>
+<$action-sendmessage $message="tm-edit-text-operation" $param="replace-selection" text=<<replacement-text>> />
+<$action-deletetiddler $tiddler=<<dropdown-state>> />
+<$action-deletetiddler $tiddler=<<state>> />
 </$set>
 \end
 
-\define body(config-title)
+\define body(state)
 ''<<lingo Hint>>''
 
-<$vars pictureTiddler="""$config-title$/search""" imageTitle={{$(pictureTiddler)$}} >
-
-<$edit-text tiddler=<<pictureTiddler>> type="search" tag="input" focus="true" placeholder={{$:/language/Buttons/Picture/Hint}} default=""/>
-<$reveal tag="span" state=<<pictureTiddler>> type="nomatch" text="">
-<<external-image>>
-<$button class="tc-btn-invisible" style="width: auto; display: inline-block; background-colour: inherit;">
-<$action-setfield $tiddler=<<pictureTiddler>> text="" />
+<$keyboard key="ENTER" actions=<<insert-img-actions>>>
+<$edit-text tiddler=<<state>> type="search" tag="input" focus="true" placeholder={{$:/language/Buttons/Picture/Hint}} default=""/>
+<$reveal tag="span" state=<<state>> type="nomatch" text="">
+<$button class="tc-btn-invisible" actions=<<insert-img-actions>>>
+{{$:/core/images/chevron-right}}
+</$button>
+<$button class="tc-btn-invisible">
+<$action-deletetiddler $tiddler=<<state>> />
 {{$:/core/images/close-button}}
 </$button>
+<$reveal state=<<preview-state>> type="match" text="">
+<$button  class="tc-btn-invisible">
+<$action-setfield $tiddler=<<preview-state>> text="display"/>
+{{$:/core/images/preview-closed}}
+</$button>
 </$reveal>
-
+<$reveal state=<<preview-state>> type="nomatch" text="">
+<$button  class="tc-btn-invisible tc-selected">
+<$action-deletetiddler $tiddler=<<preview-state>>/>
+{{$:/core/images/preview-open}}
+</$button>
+<$vars imageTitle={{$(state)$}}>
+<div class="tc-image-chooser">
+<$button tag="a" tooltip=<<imageTitle>> actions=<<insert-img-actions>>>
+<<replacement-text>>
+</$button>
+</div>
 </$vars>
+</$reveal>
+</$reveal>
+</$keyboard>
 
+<$vars imageTitle={{$(state)$}}>
+<$macrocall $name="image-picker" actions=<<insert-img-actions>> />
+</$vars>
 \end
 
 ''{{$:/language/Buttons/Picture/Hint}}''
 
-<$macrocall $name="body" config-title=<<qualify "$:/state/Picture/">>/>
-<$macrocall $name="image-picker" actions="""
-
-<$action-sendmessage
-	$message="tm-edit-text-operation"
-	$param="replace-selection"
-	text=<<replacement-text>>
-/>
-
-<$action-deletetiddler
-	$tiddler=<<dropdown-state>>
-/>
-
-"""/>
+<$vars state=<<qualify "$:/state/EditorToolbar/Picture">>>
+<<body>>
+</$vars>
